@@ -82,7 +82,7 @@ function Landing() {
           <div className="mt-10 grid grid-cols-1 items-center gap-8 md:grid-cols-[1fr_auto_1fr]">
             <img
               src={heroLeft}
-              alt="Man with sharp cornrow braids and a lined-up beard"
+              alt="Man in dark sunglasses with sharp cornrow braids and a lined-up beard"
               width={800}
               height={1008}
               className="animate-fade-up mx-auto h-56 w-full max-w-xs rounded-3xl object-cover shadow-card md:h-72"
