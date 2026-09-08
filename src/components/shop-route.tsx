@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from "react-router";
 
 import { useAuthContext } from "@/hooks/use-authenticated-user";
+import { homePathForRole } from "@/lib/shop";
 
 /**
  * Gates the /shop surfaces on `profiles.role === "shop"` — the database's own role,
@@ -11,7 +12,7 @@ export function ShopRoute() {
   const context = useAuthContext();
 
   if (context.profile?.role !== "shop") {
-    return <Navigate to="/app" replace />;
+    return <Navigate to={homePathForRole(context.profile?.role)} replace />;
   }
 
   return <Outlet context={context} />;

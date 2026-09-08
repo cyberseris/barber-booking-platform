@@ -67,7 +67,7 @@ export function formatMoney(amount: number, config: PlatformConfig): string {
  * would be unreachable dead code pointing at a page that does not exist yet.
  */
 export function homePathForRole(role: string | null | undefined): string {
-  return role === "shop" ? "/shop" : "/app";
+  return role === "shop" ? "/shop" : "/barbers";
 }
 
 /** Splits an uploaded file name into a safe lowercase extension, defaulting to jpg. */

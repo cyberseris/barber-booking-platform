@@ -80,17 +80,17 @@ export default function AppHome() {
       <main className="mx-auto max-w-3xl px-5 py-24 text-center">
         <div className="animate-fade-up rounded-3xl border border-border bg-card p-10 shadow-card">
           <h1 className="text-3xl sm:text-4xl">
-            {isShop ? "理髮師後台已經開好了" : "附近的理髮師即將上線"}
+            {isShop ? "理髮師後台已經開好了" : "可以開始預約了"}
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground">
             {isShop
               ? "你可以開始建立理髮師檔案、服務項目與可預約時段。"
-              : "下一個里程碑會加上瀏覽與預約功能。想開店接客嗎？"}
+              : "瀏覽理髮師的作品、挑一個時段預約，也可以隨時回來看自己的預約。想開店接客嗎？"}
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             {isShop
               ? "Your shop tools are ready — add barbers, services and bookable slots."
-              : "Browsing & booking are coming soon. Want to take bookings yourself?"}
+              : "Browse barbers, book a slot, and check your bookings any time."}
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -110,14 +110,28 @@ export default function AppHome() {
                 </Link>
               </>
             ) : (
-              <button
-                type="button"
-                onClick={handleBecomeShop}
-                disabled={upgrading}
-                className="h-12 rounded-full bg-primary px-7 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
-              >
-                {upgrading ? "處理中…" : "開店 / Become a shop"}
-              </button>
+              <>
+                <Link
+                  to="/barbers"
+                  className="h-12 rounded-full bg-primary px-7 text-sm leading-[3rem] font-medium text-primary-foreground transition hover:opacity-90"
+                >
+                  瀏覽理髮師 / Browse barbers
+                </Link>
+                <Link
+                  to="/bookings"
+                  className="h-12 rounded-full border border-border px-7 text-sm leading-[3rem] font-medium transition hover:bg-secondary"
+                >
+                  我的預約 / My bookings
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleBecomeShop}
+                  disabled={upgrading}
+                  className="h-12 rounded-full border border-border px-7 text-sm font-medium transition hover:bg-secondary disabled:opacity-60"
+                >
+                  {upgrading ? "處理中…" : "開店 / Become a shop"}
+                </button>
+              </>
             )}
           </div>
 
