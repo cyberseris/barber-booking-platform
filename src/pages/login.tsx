@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 
 import heroRight from "@/assets/hero-right.jpg";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/integrations/supabase/client";
+import { homePathForRole } from "@/lib/shop";
 
 type Role = "customer" | "shop";
 type Mode = "signup" | "signin";
@@ -34,11 +35,32 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Send the user to the page their role belongs on. The branch reads `profiles.role`
+   * (the row the signup trigger created), not the tab that was clicked, so an existing
+   * account always lands in the right place. Shop and customer are the only branches:
+   * no admin can be signed in at this point in the course.
+   */
+  const goToRoleHome = useCallback(async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      navigate(homePathForRole(null), { replace: true });
+      return;
+    }
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+    navigate(homePathForRole(profile?.role), { replace: true });
+  }, [navigate]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate("/app", { replace: true });
+      if (data.session) void goToRoleHome();
     });
-  }, [navigate]);
+  }, [goToRoleHome]);
 
   function switchMode(next: Mode) {
     setError(null);
@@ -55,7 +77,12 @@ export default function Login() {
         ? await supabase.auth.signUp({
             email,
             password,
-            options: { data: { role }, emailRedirectTo: window.location.origin },
+            options: {
+              data: { role },
+              // Same role branch as the post-sign-in redirect, using the chosen tab
+              // (there is no profiles row to read until the signup trigger fires).
+              emailRedirectTo: `${window.location.origin}${homePathForRole(role)}`,
+            },
           })
         : await supabase.auth.signInWithPassword({ email, password });
 
@@ -66,7 +93,7 @@ export default function Login() {
       return;
     }
     if (result.data.session) {
-      navigate("/app", { replace: true });
+      await goToRoleHome();
     } else {
       navigate(PATH_FOR_MODE.signin, { replace: true });
       setError("Account created. Please sign in.");

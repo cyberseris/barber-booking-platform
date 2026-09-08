@@ -9,10 +9,13 @@ import {
 
 import { ErrorPage } from "@/components/error-page";
 import { ProtectedRoute } from "@/components/protected-route";
+import { ShopRoute } from "@/components/shop-route";
 import AppHome from "@/pages/app-home";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
+import ShopBookings from "@/pages/shop-bookings";
+import ShopOnboarding from "@/pages/shop-onboarding";
 
 const queryClient = new QueryClient();
 
@@ -41,7 +44,17 @@ const router = createBrowserRouter([
       { path: "/login", element: <Navigate to="/sign-in" replace /> },
       {
         element: <ProtectedRoute />,
-        children: [{ path: "/app", element: <AppHome /> }],
+        children: [
+          { path: "/app", element: <AppHome /> },
+          // Everything under here additionally requires profiles.role === "shop".
+          {
+            element: <ShopRoute />,
+            children: [
+              { path: "/shop", element: <ShopOnboarding /> },
+              { path: "/shop/bookings", element: <ShopBookings /> },
+            ],
+          },
+        ],
       },
       { path: "*", element: <NotFound /> },
     ],
