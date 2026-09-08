@@ -22,8 +22,8 @@ export default function AppHome() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border/60 bg-background/85 backdrop-blur">
+    <div className="min-h-screen bg-cream">
+      <header className="border-b border-border/60 bg-background/70 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-5 py-4">
           <Link to="/" className="font-display text-2xl tracking-tight">
             Barberly

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 
+import heroRight from "@/assets/hero-right.jpg";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -73,15 +74,31 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-cream">
       <header className="mx-auto w-full max-w-6xl px-5 py-6">
         <Link to="/" className="font-display text-2xl tracking-tight">
           Barberly
         </Link>
       </header>
 
-      <main className="flex flex-1 items-start justify-center px-5 pb-20 pt-4">
-        <div className="animate-fade-up w-full max-w-md rounded-3xl border border-border bg-card p-7 shadow-card">
+      <main className="mx-auto grid w-full max-w-5xl flex-1 items-center gap-12 px-5 pb-20 pt-4 lg:grid-cols-2">
+        <aside className="hidden lg:block">
+          <img
+            src={heroRight}
+            alt=""
+            width={800}
+            height={1008}
+            className="h-[28rem] w-full rounded-[2rem] object-cover shadow-card"
+          />
+          <p className="mt-7 max-w-sm font-display text-2xl leading-snug">
+            Book the chair, not the phone call.
+          </p>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            Verified barbers, real openings, and a booking that takes under a minute.
+          </p>
+        </aside>
+
+        <div className="animate-fade-up mx-auto w-full max-w-md rounded-3xl border border-border bg-card p-7 shadow-card lg:mx-0">
           <h1 className="text-center text-3xl">
             {mode === "signup" ? "Create your account" : "Welcome back"}
           </h1>
