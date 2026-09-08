@@ -25,4 +25,5 @@ dist
 *.sln
 *.sw?
 .env
+vite-spa-migration.patch
 
