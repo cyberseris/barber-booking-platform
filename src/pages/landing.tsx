@@ -1,29 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
 import { Search, ShieldCheck, Zap, Lock, Sparkles, Star } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router";
 
 import heroLeft from "@/assets/hero-left.jpg";
 import heroRight from "@/assets/hero-right.jpg";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { featuredBarbers, type Service } from "@/lib/barbers-data";
-
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Barberly — Style with Confident Hair" },
-      {
-        name: "description",
-        content:
-          "Find a verified barber or stylist near you and book a cut, color, perm or beard trim in a few taps. Barberly is the booking marketplace built around barbers.",
-      },
-      { property: "og:title", content: "Barberly — Style with Confident Hair" },
-      {
-        property: "og:description",
-        content: "Find a verified barber or stylist near you and book in a few taps.",
-      },
-    ],
-  }),
-  component: Landing,
-});
 
 const filters: Array<"All" | Service> = ["All", "Cut", "Color", "Perm", "Beard"];
 
@@ -36,7 +18,15 @@ const features = [
   { icon: Sparkles, label: "Top-Rated Styles" },
 ];
 
-function Landing() {
+export default function Landing() {
+  usePageMeta({
+    title: "Barberly — Style with Confident Hair",
+    description:
+      "Find a verified barber or stylist near you and book a cut, color, perm or beard trim in a few taps. Barberly is the booking marketplace built around barbers.",
+    ogTitle: "Barberly — Style with Confident Hair",
+    ogDescription: "Find a verified barber or stylist near you and book in a few taps.",
+  });
+
   const [activeFilter, setActiveFilter] = useState<"All" | Service>("All");
   const [query, setQuery] = useState("");
 
@@ -62,7 +52,7 @@ function Landing() {
             />
           </div>
           <Link
-            to="/login"
+            to="/sign-in"
             className="ml-auto inline-flex h-10 items-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:opacity-90 sm:ml-0"
           >
             Login
@@ -171,7 +161,7 @@ function Landing() {
             {visible.map((b) => (
               <Link
                 key={b.id}
-                to="/login"
+                to="/sign-up"
                 className="group block overflow-hidden rounded-3xl border border-border bg-card shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-lift"
               >
                 <div className="relative">

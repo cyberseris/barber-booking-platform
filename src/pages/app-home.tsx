@@ -1,30 +1,24 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "react-router";
 
+import { useAuthenticatedUser } from "@/hooks/use-authenticated-user";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/_authenticated/barbers")({
-  head: () => ({
-    meta: [
-      { title: "Barbers — Barberly" },
-      {
-        name: "description",
-        content: "Your Barberly home: browsing, booking and barber tools arrive next.",
-      },
-      { property: "og:title", content: "Barbers — Barberly" },
-      { property: "og:description", content: "Your Barberly home." },
-    ],
-  }),
-  component: BarbersShell,
-});
+export default function AppHome() {
+  usePageMeta({
+    title: "Barbers — Barberly",
+    description: "Your Barberly home: browsing, booking and barber tools arrive next.",
+    ogTitle: "Barbers — Barberly",
+    ogDescription: "Your Barberly home.",
+  });
 
-function BarbersShell() {
-  const { user } = Route.useRouteContext();
+  const user = useAuthenticatedUser();
   const navigate = useNavigate();
   const isShop = user.user_metadata?.["role"] === "shop";
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    navigate({ to: "/login", replace: true });
+    navigate("/sign-in", { replace: true });
   }
 
   return (

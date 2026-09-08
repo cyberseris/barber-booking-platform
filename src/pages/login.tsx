@@ -1,32 +1,32 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/login")({
-  head: () => ({
-    meta: [
-      { title: "Sign in or sign up — Barberly" },
-      {
-        name: "description",
-        content:
-          "Create your Barberly account as a customer or as a barber, or sign in to manage your bookings.",
-      },
-      { property: "og:title", content: "Sign in or sign up — Barberly" },
-      {
-        property: "og:description",
-        content: "Create a Barberly account as a customer or a barber.",
-      },
-    ],
-  }),
-  component: LoginPage,
-});
-
 type Role = "customer" | "shop";
+type Mode = "signup" | "signin";
 
-function LoginPage() {
+const PATH_FOR_MODE: Record<Mode, string> = {
+  signin: "/sign-in",
+  signup: "/sign-up",
+};
+
+export default function Login() {
+  usePageMeta({
+    title: "Sign in or sign up — Barberly",
+    description:
+      "Create your Barberly account as a customer or as a barber, or sign in to manage your bookings.",
+    ogTitle: "Sign in or sign up — Barberly",
+    ogDescription: "Create a Barberly account as a customer or a barber.",
+  });
+
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const location = useLocation();
+  // The URL is the source of truth for which tab is showing, so /sign-in and
+  // /sign-up are both real, linkable pages.
+  const mode: Mode = location.pathname === PATH_FOR_MODE.signup ? "signup" : "signin";
+
   const [role, setRole] = useState<Role>("customer");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,9 +35,14 @@ function LoginPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/barbers", replace: true });
+      if (data.session) navigate("/app", { replace: true });
     });
   }, [navigate]);
+
+  function switchMode(next: Mode) {
+    setError(null);
+    navigate(PATH_FOR_MODE[next], { replace: true });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,9 +65,9 @@ function LoginPage() {
       return;
     }
     if (result.data.session) {
-      navigate({ to: "/barbers", replace: true });
+      navigate("/app", { replace: true });
     } else {
-      setMode("signin");
+      navigate(PATH_FOR_MODE.signin, { replace: true });
       setError("Account created. Please sign in.");
     }
   }
@@ -163,10 +168,7 @@ function LoginPage() {
             {mode === "signup" ? "Already have an account?" : "New to Barberly?"}{" "}
             <button
               type="button"
-              onClick={() => {
-                setMode(mode === "signup" ? "signin" : "signup");
-                setError(null);
-              }}
+              onClick={() => switchMode(mode === "signup" ? "signin" : "signup")}
               className="font-medium text-foreground underline underline-offset-4"
             >
               {mode === "signup" ? "Sign in" : "Sign up"}

@@ -144,13 +144,78 @@ Continue developing this project in the [Lovable editor](https://lovable.dev/pro
 - **Stay in sync**: every change made in Lovable is committed straight to this repository.
 - **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
+## Stack
+
+Plain **Vite + React** single-page app — no SSR, no server runtime, no platform
+adapter. `vite build` emits a fully static bundle to `dist/`.
+
+- React 19 + TypeScript
+- [React Router](https://reactrouter.com) v7 for client-side routing
+- Tailwind CSS v4 (via `@tailwindcss/vite`) + shadcn/ui components
+- Supabase JS for auth (browser-side only)
+- TanStack Query for data fetching
+
+> This project previously ran on TanStack Start with SSR and a Cloudflare/nitro
+> build target. That was removed in the migration to a static SPA: the server
+> entry, the route tree, the server-only Supabase modules (service-role client,
+> auth middleware, cron auth) and the wrangler config are all gone.
+
+## Routes
+
+| Path | Page |
+| --- | --- |
+| `/` | Public landing page |
+| `/sign-in` | Combined auth page, Sign In tab |
+| `/sign-up` | Combined auth page, Sign Up tab (customer / barber role toggle) |
+| `/login` | Redirects to `/sign-in` (legacy path) |
+| `/app` | Authenticated shell — role-aware placeholder (was `/barbers`) |
+| anything else | 404 |
+
+`/app` is guarded client-side by `<ProtectedRoute />`, which checks the Supabase
+session in the browser and redirects to `/sign-in` when there is none.
+
+Page titles and meta tags are set by the `usePageMeta` hook, the client-side
+stand-in for TanStack Start's route `head()`. Site-wide defaults live in
+`index.html`.
+
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+You need [Bun](https://bun.sh) (or Node.js + npm — the lockfile is Bun's).
 
 ```sh
 git clone <this-repository-url>
 cd <repository-name>
-npm i
-npm run dev
+bun install
+bun run dev        # http://localhost:8080
 ```
+
+Other scripts: `bun run build`, `bun run preview`, `bun run typecheck`,
+`bun run lint`, `bun run format`.
+
+### Environment variables
+
+Copy the `VITE_`-prefixed values into `.env`:
+
+```
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_PUBLISHABLE_KEY=...
+VITE_SUPABASE_PROJECT_ID=...
+```
+
+Vite inlines these at build time, so they must be present in the *build*
+environment — not just at runtime.
+
+## Deploying to Vercel
+
+The app is a static SPA, so no serverless functions are involved.
+
+- Build command: `vite build`
+- Output directory: `dist`
+- `vercel.json` rewrites every unmatched path to `/index.html`, so deep links
+  such as `/app` are served the shell and resolved by React Router. Real files
+  in `dist/` (assets, `favicon.ico`, `robots.txt`) are matched first and served
+  directly.
+- Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the Vercel
+  project's environment variables for every environment you build.
+- Add the Vercel domain to the Supabase Auth allowed redirect URLs — sign-up
+  uses `emailRedirectTo: window.location.origin`.
