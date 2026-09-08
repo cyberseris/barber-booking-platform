@@ -76,9 +76,9 @@ The site must include:
 
     - Footer with copyright "© 2026 Barberly".
 
-2. Authentication using Lovable's built-in Supabase-style auth (Lovable Cloud
+2. Authentication against the project's own Supabase project
 
-    is fine for v1; we'll swap to a user-owned Supabase project later):
+    (`swnkhusarprfawhlpycs`), via `@supabase/supabase-js`:
 
     - A combined Sign Up / Sign In page at /login with email + password.
 
@@ -197,10 +197,14 @@ Other scripts: `bun run build`, `bun run preview`, `bun run typecheck`,
 Copy the `VITE_`-prefixed values into `.env`:
 
 ```
-VITE_SUPABASE_URL=...
-VITE_SUPABASE_PUBLISHABLE_KEY=...
-VITE_SUPABASE_PROJECT_ID=...
+VITE_SUPABASE_URL=https://swnkhusarprfawhlpycs.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+VITE_SUPABASE_PROJECT_ID=swnkhusarprfawhlpycs
 ```
+
+`VITE_SUPABASE_PUBLISHABLE_KEY` is Supabase's current name for what used to be
+called the anon key: browser-safe and gated by RLS. `.env.example` has the
+shape; `.env` is gitignored.
 
 Vite inlines these at build time, so they must be present in the *build*
 environment — not just at runtime.
