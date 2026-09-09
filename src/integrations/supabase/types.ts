@@ -51,6 +51,13 @@ export type Database = {
             referencedRelation: "barbers_public";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "barber_photos_barber_id_fkey";
+            columns: ["barber_id"];
+            isOneToOne: false;
+            referencedRelation: "owed_bookings";
+            referencedColumns: ["barber_id"];
+          },
         ];
       };
       barbers: {
@@ -125,6 +132,13 @@ export type Database = {
             referencedRelation: "barbers_public";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "bookable_slots_barber_id_fkey";
+            columns: ["barber_id"];
+            isOneToOne: false;
+            referencedRelation: "owed_bookings";
+            referencedColumns: ["barber_id"];
+          },
         ];
       };
       booking_slots: {
@@ -154,6 +168,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "bookings_with_start";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "booking_slots_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "owed_bookings";
+            referencedColumns: ["booking_id"];
           },
           {
             foreignKeyName: "booking_slots_slot_id_fkey";
@@ -210,6 +231,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "bookings_payout_id_fkey";
+            columns: ["payout_id"];
+            isOneToOne: false;
+            referencedRelation: "payouts";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "bookings_service_id_fkey";
             columns: ["service_id"];
             isOneToOne: false;
@@ -238,6 +266,82 @@ export type Database = {
           platform_pct?: number;
         };
         Relationships: [];
+      };
+      payouts: {
+        Row: {
+          bank_reference: string | null;
+          bookings_count: number;
+          created_at: string;
+          created_by: string | null;
+          gross: number;
+          id: string;
+          marked_transferred_at: string | null;
+          note: string | null;
+          platform_cut: number;
+          platform_pct: number;
+          shop_cut: number;
+          shop_id: string;
+          shop_name: string | null;
+          status: string;
+          transferred_by: string | null;
+        };
+        Insert: {
+          bank_reference?: string | null;
+          bookings_count?: number;
+          created_at?: string;
+          created_by?: string | null;
+          gross?: number;
+          id?: string;
+          marked_transferred_at?: string | null;
+          note?: string | null;
+          platform_cut?: number;
+          platform_pct: number;
+          shop_cut?: number;
+          shop_id: string;
+          shop_name?: string | null;
+          status?: string;
+          transferred_by?: string | null;
+        };
+        Update: {
+          bank_reference?: string | null;
+          bookings_count?: number;
+          created_at?: string;
+          created_by?: string | null;
+          gross?: number;
+          id?: string;
+          marked_transferred_at?: string | null;
+          note?: string | null;
+          platform_cut?: number;
+          platform_pct?: number;
+          shop_cut?: number;
+          shop_id?: string;
+          shop_name?: string | null;
+          status?: string;
+          transferred_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payouts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payouts_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payouts_transferred_by_fkey";
+            columns: ["transferred_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       platform_settings: {
         Row: {
@@ -336,6 +440,13 @@ export type Database = {
             referencedRelation: "barbers_public";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "services_barber_id_fkey";
+            columns: ["barber_id"];
+            isOneToOne: false;
+            referencedRelation: "owed_bookings";
+            referencedColumns: ["barber_id"];
+          },
         ];
       };
     };
@@ -424,6 +535,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "bookings_payout_id_fkey";
+            columns: ["payout_id"];
+            isOneToOne: false;
+            referencedRelation: "payouts";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "bookings_service_id_fkey";
             columns: ["service_id"];
             isOneToOne: false;
@@ -432,13 +550,53 @@ export type Database = {
           },
         ];
       };
+      owed_bookings: {
+        Row: {
+          barber_id: string | null;
+          barber_name: string | null;
+          booking_id: string | null;
+          customer_id: string | null;
+          paid_at: string | null;
+          platform_cut: number | null;
+          platform_pct: number | null;
+          price: number | null;
+          shop_cut: number | null;
+          shop_id: string | null;
+          shop_name: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "barbers_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookings_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Functions: {
+      build_payout: {
+        Args: { p_booking_ids: string[]; p_note?: string };
+        Returns: string;
+      };
+      cancel_payout: { Args: { p_payout_id: string }; Returns: undefined };
       create_booking: {
         Args: { p_service_id: string; p_start_slot_id: string };
         Returns: string;
       };
       is_admin: { Args: never; Returns: boolean };
+      mark_payout_transferred: {
+        Args: { p_bank_reference?: string; p_payout_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       [_ in never]: never;

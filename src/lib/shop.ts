@@ -5,6 +5,17 @@ export type Barber = Tables<"barbers">;
 export type Service = Tables<"services">;
 export type BookableSlot = Tables<"bookable_slots">;
 export type BarberPhoto = Tables<"barber_photos">;
+export type Payout = Tables<"payouts">;
+/** One row per PAID booking not yet in a payout — M2.2's live owed pool. */
+export type OwedBooking = Tables<"owed_bookings">;
+
+export type PayoutStatus = "pending_transfer" | "transferred" | "cancelled";
+
+export const PAYOUT_STATUS_LABELS: Record<PayoutStatus, string> = {
+  pending_transfer: "待轉帳 / Pending",
+  transferred: "已轉帳 / Transferred",
+  cancelled: "已取消 / Cancelled",
+};
 
 /**
  * The canonical role values are customer | shop | admin, but the sign-up tab and the
@@ -62,15 +73,13 @@ export function formatMoney(amount: number, config: PlatformConfig): string {
 /**
  * Where a signed-in user belongs, branched on `profiles.role`.
  *
- * M1.1 branches shop vs customer ONLY. As of the M2.1 prerequisite a logged-in admin now
- * exists (promoted by a one-off migration), and it deliberately falls through to the
- * customer branch → `/barbers`: the admin payout page does NOT exist until M2.2, so an
- * `admin → "/admin/payouts"` branch here would strand the admin on a 404.
- *
- * TODO(M2.2): once `/admin/payouts` ships, add `if (role === "admin") return "/admin/payouts"`.
+ * M1.1 branched shop vs customer only, and fell through admin → `/barbers` (the payout
+ * page didn't exist yet). M2.2 ships `/admin/payouts`, so admin now has its own branch.
  */
 export function homePathForRole(role: string | null | undefined): string {
-  return role === "shop" ? "/shop" : "/barbers";
+  if (role === "shop") return "/shop";
+  if (role === "admin") return "/admin/payouts";
+  return "/barbers";
 }
 
 /** Splits an uploaded file name into a safe lowercase extension, defaulting to jpg. */

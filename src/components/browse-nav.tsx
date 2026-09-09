@@ -14,6 +14,10 @@ const linkBase = "h-9 rounded-full px-4 text-sm font-medium leading-9 transition
  */
 export function BrowseNav() {
   const [user, setUser] = useState<User | null>(null);
+  // Browsing is public, so this page has no <ProtectedRoute /> profile — read the role
+  // directly, only to decide whether to show the admin-only Payouts link (defense in
+  // depth; the real gate is <AdminRoute /> + RLS on /admin/payouts itself).
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,6 +36,28 @@ export function BrowseNav() {
       subscription.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+
+    supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (active) setIsAdmin(data?.role === "admin");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -62,6 +88,16 @@ export function BrowseNav() {
               }
             >
               我的預約
+            </NavLink>
+          )}
+          {isAdmin && (
+            <NavLink
+              to="/admin/payouts"
+              className={({ isActive }) =>
+                `${linkBase} ${isActive ? "bg-primary text-primary-foreground" : "hover:bg-secondary"}`
+              }
+            >
+              撥款管理 Payouts
             </NavLink>
           )}
         </nav>

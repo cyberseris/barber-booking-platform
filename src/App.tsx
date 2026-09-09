@@ -7,10 +7,12 @@ import {
   createBrowserRouter,
 } from "react-router";
 
+import { AdminRoute } from "@/components/admin-route";
 import { ErrorPage } from "@/components/error-page";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ShopRoute } from "@/components/shop-route";
 import { Toaster } from "@/components/ui/sonner";
+import AdminPayouts from "@/pages/admin-payouts";
 import AppHome from "@/pages/app-home";
 import BarberDetail from "@/pages/barber-detail";
 import Barbers from "@/pages/barbers";
@@ -20,6 +22,7 @@ import Login from "@/pages/login";
 import MyBookings from "@/pages/my-bookings";
 import NotFound from "@/pages/not-found";
 import ShopBookings from "@/pages/shop-bookings";
+import ShopEarnings from "@/pages/shop-earnings";
 import ShopOnboarding from "@/pages/shop-onboarding";
 
 const queryClient = new QueryClient();
@@ -64,7 +67,14 @@ const router = createBrowserRouter([
             children: [
               { path: "/shop", element: <ShopOnboarding /> },
               { path: "/shop/bookings", element: <ShopBookings /> },
+              { path: "/shop/earnings", element: <ShopEarnings /> },
             ],
+          },
+          // M2.2 — the admin settlement workflow. Gated by profiles.role === "admin"
+          // (AdminRoute) and, underneath, by RLS + the admin-guarded RPCs.
+          {
+            element: <AdminRoute />,
+            children: [{ path: "/admin/payouts", element: <AdminPayouts /> }],
           },
         ],
       },
