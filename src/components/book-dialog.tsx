@@ -34,7 +34,6 @@ interface BookDialogProps {
   /** Future slots with NO `booking_slots` row referencing them, sorted by `starts_at`. */
   freeSlots: BookableSlot[];
   config: PlatformConfig;
-  onBooked: () => void;
 }
 
 /**
@@ -43,9 +42,12 @@ interface BookDialogProps {
  *
  * Service comes first because it decides two things: the price shown before Confirm,
  * and N = `service.required_slots` — how many consecutive slots the booking spans.
- * Confirm calls the `create_booking` RPC, which writes the booking + its N
- * `booking_slots` rows in ONE transaction (M2.1 later adds Stripe Checkout after this
- * same call, which is why the confirm path is kept deliberately simple).
+ *
+ * M2.1: Confirm is now PAY-NOW. It still calls the `create_booking` RPC (booking + its N
+ * `booking_slots` rows + the price snapshot, in ONE transaction), then hands the returned
+ * `booking_id` to `POST /api/bookings/checkout` and leaves the SPA for Stripe's hosted
+ * page. The booking stays `pending_payment` until the WEBHOOK sees the payment — this
+ * dialog never marks anything paid.
  */
 export function BookDialog({
   open,
@@ -54,7 +56,6 @@ export function BookDialog({
   services,
   freeSlots,
   config,
-  onBooked,
 }: BookDialogProps) {
   const [serviceId, setServiceId] = useState<string | null>(null);
   const [dateKey, setDateKey] = useState<string | null>(null);
@@ -119,22 +120,45 @@ export function BookDialog({
     setSubmitting(true);
     setError(null);
 
-    const { error: rpcError } = await supabase.rpc("create_booking", {
+    // Step 1 — the M1.2 transaction: pending_payment booking + its N booking_slots rows
+    // + the price SNAPSHOT. The slots are held from this moment (UNIQUE(slot_id) allows
+    // one live booking per slot), so nobody else can start paying for the same run.
+    const { data: bookingId, error: rpcError } = await supabase.rpc("create_booking", {
       p_service_id: service.id,
       p_start_slot_id: startSlotId,
     });
 
-    setSubmitting(false);
-
-    if (rpcError) {
+    if (rpcError || !bookingId) {
+      setSubmitting(false);
       // The RPC raises real messages ("those times were just taken", "…has a gap").
       // errMessage digs them out of the PostgrestError instead of swallowing them.
       setError(errMessage(rpcError, "無法完成預約，請再試一次。"));
       return;
     }
 
-    setStartSlotId(null);
-    onBooked();
+    // Step 2 — hand the booking to Stripe Checkout. The route reads the price snapshot
+    // server-side; we never send an amount from the browser.
+    try {
+      const response = await fetch("/api/bookings/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id: bookingId }),
+      });
+
+      const payload = (await response.json()) as { url?: string; error?: string };
+      if (!response.ok || !payload.url) {
+        throw new Error(payload.error ?? "無法建立付款頁面");
+      }
+
+      // Leave the SPA for Stripe's hosted page. Deliberately no setSubmitting(false) —
+      // the button stays disabled through the redirect so a double-click can't re-book.
+      window.location.assign(payload.url);
+    } catch (cause) {
+      setSubmitting(false);
+      setError(
+        `${errMessage(cause, "無法前往付款頁面")}。預約已建立但尚未付款，可以到「我的預約」取消後再試一次。`,
+      );
+    }
   }
 
   return (
@@ -296,7 +320,7 @@ export function BookDialog({
             disabled={!service || !startSlotId || submitting}
             className="h-11 rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
           >
-            {submitting ? "預約中…" : "確認預約 Confirm"}
+            {submitting ? "前往付款…" : "確認並付款 Confirm & pay"}
           </button>
         </DialogFooter>
       </DialogContent>

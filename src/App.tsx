@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/sonner";
 import AppHome from "@/pages/app-home";
 import BarberDetail from "@/pages/barber-detail";
 import Barbers from "@/pages/barbers";
+import BookingSuccess from "@/pages/booking-success";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import MyBookings from "@/pages/my-bookings";
@@ -55,6 +56,8 @@ const router = createBrowserRouter([
         children: [
           { path: "/app", element: <AppHome /> },
           { path: "/bookings", element: <MyBookings /> },
+          // Where Stripe drops the customer after paying. Polls the booking; never writes.
+          { path: "/bookings/success", element: <BookingSuccess /> },
           // Everything under here additionally requires profiles.role === "shop".
           {
             element: <ShopRoute />,

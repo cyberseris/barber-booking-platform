@@ -1,7 +1,6 @@
 import { MapPin } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { toast } from "sonner";
 
 import { BookDialog } from "@/components/book-dialog";
 import { BrowseNav } from "@/components/browse-nav";
@@ -343,13 +342,6 @@ export default function BarberDetail() {
         services={services}
         freeSlots={freeSlots}
         config={config}
-        onBooked={async () => {
-          // Stay on /barbers/:id — close the modal, confirm with a toast, and re-read
-          // availability so the held run drops out of the list.
-          setBookOpen(false);
-          toast.success("預約成功！可以在「我的預約」查看。");
-          await loadAvailability();
-        }}
       />
 
       <Dialog open={zoomed !== null} onOpenChange={(open) => !open && setZoomed(null)}>
