@@ -109,6 +109,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // the customer cannot forge it. Never look a booking up by email/customer.
       metadata: { booking_id: booking.id, customer_id: booking.customer_id },
       client_reference_id: booking.id,
+      // Managed Payments is ON BY DEFAULT on this account, and it REJECTS a dynamic
+      // price_data line item that carries no product tax_code. We turn it off per session
+      // rather than inventing a tax code, for two reasons:
+      //   1. It is Stripe's merchant-of-record product for DIGITAL goods (SaaS, software,
+      //      downloads) — its eligible tax codes are all digital. An in-person haircut
+      //      isn't in that catalogue at all.
+      //   2. This platform IS the merchant: it collects 100% into its own account and
+      //      settles 80% to the shop later (M2.2). Stripe acting as merchant of record
+      //      would cut across that split.
+      managed_payments: { enabled: false },
       // The success page polls THE BOOKING, and nothing on the booking maps a Stripe
       // session_id back to a booking_id — so booking_id must travel in the URL.
       // session_id is along only for display/debugging.
