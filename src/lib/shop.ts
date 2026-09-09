@@ -62,9 +62,12 @@ export function formatMoney(amount: number, config: PlatformConfig): string {
 /**
  * Where a signed-in user belongs, branched on `profiles.role`.
  *
- * M1.1 branches shop vs customer ONLY. There is no logged-in admin at this point in the
- * course — admin is first promoted in the M2.1 prerequisite — so an admin branch here
- * would be unreachable dead code pointing at a page that does not exist yet.
+ * M1.1 branches shop vs customer ONLY. As of the M2.1 prerequisite a logged-in admin now
+ * exists (promoted by a one-off migration), and it deliberately falls through to the
+ * customer branch → `/barbers`: the admin payout page does NOT exist until M2.2, so an
+ * `admin → "/admin/payouts"` branch here would strand the admin on a 404.
+ *
+ * TODO(M2.2): once `/admin/payouts` ships, add `if (role === "admin") return "/admin/payouts"`.
  */
 export function homePathForRole(role: string | null | undefined): string {
   return role === "shop" ? "/shop" : "/barbers";
