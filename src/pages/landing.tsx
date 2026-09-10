@@ -16,6 +16,8 @@ import { Link } from "react-router";
 import heroLeft from "@/assets/hero-left.jpg";
 import heroRight from "@/assets/hero-right.jpg";
 import { usePageMeta } from "@/hooks/use-page-meta";
+import { useSessionUser } from "@/hooks/use-session-user";
+import { supabase } from "@/integrations/supabase/client";
 import { featuredBarbers, type Service } from "@/lib/barbers-data";
 
 const filters: Array<"All" | Service> = ["All", "Cut", "Color", "Perm", "Beard"];
@@ -83,6 +85,17 @@ export default function Landing() {
 
   const [activeFilter, setActiveFilter] = useState<"All" | Service>("All");
   const [query, setQuery] = useState("");
+  // The landing page is public, so it must read the session itself. Without this the
+  // header rendered a hard-coded "Login" no matter who was signed in.
+  const { user, loading: sessionLoading } = useSessionUser();
+
+  // Signed-in visitors browse real barbers; signed-out ones are still funnelled to sign-up.
+  const barberCardHref = user ? "/barbers" : "/sign-up";
+
+  async function handleSignOut() {
+    // Stay on the landing page — useSessionUser's subscription swaps the header back.
+    await supabase.auth.signOut();
+  }
 
   const visible =
     activeFilter === "All"
@@ -109,12 +122,37 @@ export default function Landing() {
               className="h-10 w-full rounded-full border border-border bg-card pl-9 pr-4 text-sm outline-none transition focus:border-foreground/30 focus:ring-2 focus:ring-ring/30"
             />
           </div>
-          <Link
-            to="/sign-in"
-            className="ml-auto inline-flex h-10 items-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:opacity-90 sm:ml-0"
-          >
-            Login
-          </Link>
+          <div className="ml-auto flex items-center gap-3 sm:ml-0">
+            {/* Render neither state until the session settles, so a signed-in visitor
+                never sees "Login" flash before it corrects itself. */}
+            {sessionLoading ? (
+              <span aria-hidden className="h-10 w-24 rounded-full bg-secondary/60" />
+            ) : user ? (
+              <>
+                <Link
+                  to="/bookings"
+                  className="hidden h-10 items-center rounded-full px-4 text-sm font-medium transition hover:bg-secondary sm:inline-flex"
+                >
+                  我的預約
+                </Link>
+                <span className="hidden text-sm text-muted-foreground lg:inline">{user.email}</span>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium transition hover:bg-secondary"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/sign-in"
+                className="inline-flex h-10 items-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+              >
+                Login
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
@@ -218,7 +256,10 @@ export default function Landing() {
         </section>
 
         {/* Trust strip */}
-        <section aria-label="Partner salons" className="mt-24 border-y border-border/50 bg-cream sm:mt-28">
+        <section
+          aria-label="Partner salons"
+          className="mt-24 border-y border-border/50 bg-cream sm:mt-28"
+        >
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-4 px-5 py-7">
             {partners.map((p) => (
               <span
@@ -271,7 +312,7 @@ export default function Landing() {
             {visible.map((b) => (
               <Link
                 key={b.id}
-                to="/sign-up"
+                to={barberCardHref}
                 className="group block overflow-hidden rounded-[1.75rem] border border-border bg-card transition duration-300 hover:-translate-y-1 hover:shadow-lift"
               >
                 <div className="relative">
@@ -343,13 +384,41 @@ export default function Landing() {
           <div>
             <h3 className="text-sm font-medium">Get started</h3>
             <div className="mt-3 flex flex-col gap-2 text-sm">
-              <Link to="/sign-up" className="text-muted-foreground transition hover:text-foreground">
-                Create an account
-              </Link>
-              <Link to="/sign-in" className="text-muted-foreground transition hover:text-foreground">
-                Sign in
-              </Link>
-              <Link to="/sign-up" className="text-muted-foreground transition hover:text-foreground">
+              {user ? (
+                <>
+                  <Link
+                    to="/barbers"
+                    className="text-muted-foreground transition hover:text-foreground"
+                  >
+                    瀏覽理髮師
+                  </Link>
+                  <Link
+                    to="/bookings"
+                    className="text-muted-foreground transition hover:text-foreground"
+                  >
+                    我的預約
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/sign-up"
+                    className="text-muted-foreground transition hover:text-foreground"
+                  >
+                    Create an account
+                  </Link>
+                  <Link
+                    to="/sign-in"
+                    className="text-muted-foreground transition hover:text-foreground"
+                  >
+                    Sign in
+                  </Link>
+                </>
+              )}
+              <Link
+                to="/sign-up"
+                className="text-muted-foreground transition hover:text-foreground"
+              >
                 List your shop
               </Link>
             </div>

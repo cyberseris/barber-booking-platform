@@ -1,7 +1,7 @@
-import type { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router";
 
+import { useSessionUser } from "@/hooks/use-session-user";
 import { supabase } from "@/integrations/supabase/client";
 
 const linkBase = "h-9 rounded-full px-4 text-sm font-medium leading-9 transition";
@@ -13,29 +13,12 @@ const linkBase = "h-9 rounded-full px-4 text-sm font-medium leading-9 transition
  * <ProtectedRoute />'s context — the same header works signed in or out.
  */
 export function BrowseNav() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useSessionUser();
   // Browsing is public, so this page has no <ProtectedRoute /> profile — read the role
   // directly, only to decide whether to show the admin-only Payouts link (defense in
   // depth; the real gate is <AdminRoute /> + RLS on /admin/payouts itself).
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    let active = true;
-
-    supabase.auth.getUser().then(({ data }) => {
-      if (active) setUser(data.user ?? null);
-    });
-
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      active = false;
-      subscription.subscription.unsubscribe();
-    };
-  }, []);
 
   useEffect(() => {
     let active = true;
